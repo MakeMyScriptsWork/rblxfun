@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.2"
+local version = "v1.3 a"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -28,7 +28,7 @@ local function getPlayersByName(name)
             local displayName = player.DisplayName and player.DisplayName:lower() or "None"
             print("Player: Name=" .. player.Name .. ", DisplayName=" .. displayName)
             if playerName:find(name, 1, true) or displayName:find(name, 1, true) then
-                matches[#matches + 1] = player  -- Avoid table.insert
+                matches[#matches + 1] = player
             end
         end
         if #matches == 0 then
@@ -44,8 +44,8 @@ end
 local function getPlayerList()
     local playerList = {}
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then  -- Exclude local player
-            playerList[#playerList + 1] = player.Name  -- Avoid table.insert
+        if player ~= LocalPlayer then
+            playerList[#playerList + 1] = player.Name
         end
     end
     return playerList
@@ -122,7 +122,7 @@ local function forceTeleport(targetRoot, duration)
     local connection
     connection = RunService.RenderStepped:Connect(function()
         pcall(function()
-            local targetCFrame = getBehindCFrame(targetRoot)  -- Recalculate every frame (~10ms at 60 FPS)
+            local targetCFrame = getBehindCFrame(targetRoot)
             myRoot.CFrame = targetCFrame
             myRoot.Velocity = Vector3.new(0, 0, 0)
             myRoot.Anchored = false
@@ -131,7 +131,7 @@ local function forceTeleport(targetRoot, duration)
             connection:Disconnect()
         end
     end)
-    connections[#connections + 1] = connection  -- Avoid table.insert
+    connections[#connections + 1] = connection
     while tick() - startTime < duration do
         RunService.RenderStepped:Wait()
     end
@@ -143,7 +143,6 @@ local function performAttack(dropdown)
         print("No target player selected. Select a player from the dropdown.")
         return
     end
-    -- Re-check target character
     targetChar = targetPlayer.Character
     if not targetChar then
         print("Target character not found during attack.")
@@ -155,38 +154,31 @@ local function performAttack(dropdown)
         print("Target root not found during attack.")
         return
     end
-    -- Check for equipped tool during attack
     local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
     if not equippedTool then
         print("No tool equipped. Please equip a tool to attack.")
         return
     end
-    -- Save return position at the time of attack
     local returnPosition = myRoot.Position
     print("Attack return position saved: " .. tostring(returnPosition))
 
     local success, err = pcall(function()
-        -- First attack sequence
         print("Starting first teleport and attack")
         equippedTool:Activate()
         forceTeleport(targetRoot)
         print("First attack activated.")
 
-        -- Teleport back
         print("Teleporting back")
         local backCFrame = CFrame.new(returnPosition)
         forceTeleport({Position = returnPosition, CFrame = backCFrame}, 0.3)
 
-        -- Wait half a second
         wait(0.5)
 
-        -- Second attack sequence
         print("Starting second teleport and attack")
         equippedTool:Activate()
         forceTeleport(targetRoot)
         print("Second attack activated.")
 
-        -- Final back
         print("Final teleport back")
         forceTeleport({Position = returnPosition, CFrame = backCFrame}, 0.3)
     end)
@@ -195,7 +187,6 @@ local function performAttack(dropdown)
         print("Error in attack sequence: " .. err)
     end
 
-    -- Check if target still exists after attack
     if not Players:FindFirstChild(targetPlayer.Name) then
         print("Target player left. Refreshing dropdown.")
         updateDropdown(dropdown)
@@ -203,26 +194,27 @@ local function performAttack(dropdown)
 end
 
 -- Create GUI
+local screenGui
 local success, guiError = pcall(function()
-    local screenGui = Instance.new("ScreenGui")
+    screenGui = Instance.new("ScreenGui")
     screenGui.Parent = LocalPlayer:FindFirstChild("PlayerGui") or game.CoreGui
     screenGui.Name = "AttackGui"
     screenGui.ResetOnSpawn = false
     print("GUI created in " .. screenGui.Parent.Name)
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 150, 0, 120)  -- Smaller height (no Select Player button)
-    frame.Position = UDim2.new(0.1, 0, 0.5, -60)  -- Further left
+    frame.Size = UDim2.new(0, 150, 0, 120)
+    frame.Position = UDim2.new(0.1, 0, 0.5, -60)
     frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
     frame.BorderSizePixel = 2
-    frame.Active = true  -- Enable dragging
-    frame.Draggable = true  -- Make GUI movable
+    frame.Active = true
+    frame.Draggable = true
     frame.Parent = screenGui
     print("Frame created, Draggable: " .. tostring(frame.Draggable) .. ", Active: " .. tostring(frame.Active))
 
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0.8, 0, 0.25, 0)
-    button.Position = UDim2.new(0.1, 0, 0.65, 0)  -- Adjusted for new layout
+    button.Position = UDim2.new(0.1, 0, 0.65, 0)
     button.Text = "Execute Attack " .. version
     button.TextColor3 = Color3.new(1, 1, 1)
     button.BackgroundColor3 = Color3.new(0, 0.5, 0)
@@ -238,10 +230,9 @@ local success, guiError = pcall(function()
     closeButton.Parent = frame
     print("Close button created.")
 
-    -- Create dropdown
     local dropdownButton = Instance.new("TextButton")
     dropdownButton.Size = UDim2.new(0.8, 0, 0.25, 0)
-    dropdownButton.Position = UDim2.new(0.1, 0, 0.35, 0)  -- Adjusted for new layout
+    dropdownButton.Position = UDim2.new(0.1, 0, 0.15, 0)  -- Moved higher
     dropdownButton.Text = "Select a player"
     dropdownButton.TextColor3 = Color3.new(1, 1, 1)
     dropdownButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
@@ -249,8 +240,8 @@ local success, guiError = pcall(function()
     print("Dropdown button created.")
 
     local dropdownFrame = Instance.new("ScrollingFrame")
-    dropdownFrame.Size = UDim2.new(0.8, 0, 0.4, 0)
-    dropdownFrame.Position = UDim2.new(0.1, 0, 0.55, 0)  -- Below dropdown button
+    dropdownFrame.Size = UDim2.new(0.8, 0, 0.6, 0)  -- Larger to show more players
+    dropdownFrame.Position = UDim2.new(0.1, 0, 0.35, 0)  -- Below dropdown button
     dropdownFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
     dropdownFrame.Visible = false
     dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -258,7 +249,7 @@ local success, guiError = pcall(function()
     dropdownFrame.Parent = frame
     print("Dropdown frame created.")
 
-    -- Button connections (set up before dropdown)
+    -- Button connections
     local success, buttonError = pcall(function()
         connections[#connections + 1] = button.MouseButton1Click:Connect(function()
             print("Attack button clicked!")
@@ -288,12 +279,17 @@ local success, guiError = pcall(function()
     end
 
     -- Dropdown functionality
+    local dropdownConnections = {}
     local function updateDropdown()
         for _, child in ipairs(dropdownFrame:GetChildren()) do
             if child:IsA("TextButton") then
                 child:Destroy()
             end
         end
+        for _, connection in ipairs(dropdownConnections) do
+            connection:Disconnect()
+        end
+        dropdownConnections = {}
         dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
         print("Dropdown cleared.")
 
@@ -314,26 +310,27 @@ local success, guiError = pcall(function()
                     print("Selected player from dropdown: " .. name)
                     updateTargetPlayer(name)
                 end)
-                connections[#connections + 1] = connection  -- Avoid table.insert
+                dropdownConnections[#dropdownConnections + 1] = connection
                 yOffset = yOffset + 22
             end)
             if not success then
                 print("Error adding dropdown option for " .. name .. ": " .. tostring(err))
             end
         end
+        for _, connection in ipairs(dropdownConnections) do
+            connections[#connections + 1] = connection
+        end
         dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset)
         print("Dropdown updated with " .. #playerList .. " players.")
     end
 
-    -- Initial dropdown population
     local success, dropdownError = pcall(updateDropdown)
     if not success then
         print("Initial dropdown population failed: " .. tostring(dropdownError))
     end
 
-    -- Periodic dropdown refresh (every 30 seconds)
     connections[#connections + 1] = spawn(function()
-        while screenGui.Parent do
+        while screenGui and screenGui.Parent do
             wait(30)
             print("Refreshing dropdown...")
             local success, err = pcall(updateDropdown)
@@ -343,7 +340,6 @@ local success, guiError = pcall(function()
         end
     end)
 
-    -- Fallback manual drag handler
     local dragging = false
     local lastMousePos
     connections[#connections + 1] = UserInputService.InputBegan:Connect(function(input)
@@ -375,7 +371,6 @@ local success, guiError = pcall(function()
         end
     end)
 
-    -- Fallback keybind (press F)
     connections[#connections + 1] = UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F then
