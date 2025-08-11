@@ -1,5 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
-print("v1.1 a")
+print("v1.1 b")
 local targetPartialName = "Strangerthink496"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
@@ -267,5 +267,6 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     end
 end))
 print("Keybind set for F key.")
+
 
 
