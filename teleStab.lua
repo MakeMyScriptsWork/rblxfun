@@ -1,4 +1,3 @@
-lua
 local targetName = "flawed661"  -- Replace with the actual player namelocal Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local targetPlayer = Players:FindFirstChild(targetName)if not targetPlayer or not targetPlayer.Character or not LocalPlayer.Character then
@@ -30,4 +29,5 @@ teleportBehind()
 wait(0.1)
 equippedTool:Activate()  -- Stab again-- Optional: Teleport back again
 myHRP.CFrame = originalCFrame
+
 
