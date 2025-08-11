@@ -1,4 +1,4 @@
-local targetPartialName = "H0lyDamned"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "H0ldDamned"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -69,7 +69,7 @@ print("Original position saved: " .. tostring(originalPosition))
 
 -- Function to force teleport
 local function forceTeleport(targetCFrame, duration)
-    duration = duration or 0.2  -- Short duration to mimic click teleport
+    duration = duration or 0.3  -- Short duration to mimic click teleport
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
@@ -91,7 +91,7 @@ end
 local function getBehindCFrame(targetRoot)
     local distance = 3  -- Studs behind
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
-    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y, behindPosition.Z)  -- Match target's Y exactly
+    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y, behindPosition.Z)  -- Match target's Y
     local targetPosition = targetRoot.Position
     print("Teleport target position: " .. tostring(landingPosition))
     return CFrame.lookAt(landingPosition, targetPosition)
@@ -157,20 +157,38 @@ frame.Size = UDim2.new(0, 200, 0, 100)
 frame.Position = UDim2.new(0.5, -100, 0.5, -50)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.BorderSizePixel = 2
+frame.Active = true  -- Enable dragging
+frame.Draggable = true  -- Make GUI movable
 frame.Parent = screenGui
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0.6, 0)
-button.Position = UDim2.new(0.1, 0, 0.2, 0)
+button.Size = UDim2.new(0.8, 0, 0.5, 0)
+button.Position = UDim2.new(0.1, 0, 0.1, 0)
 button.Text = "Execute Attack"
 button.TextColor3 = Color3.new(1, 1, 1)
 button.BackgroundColor3 = Color3.new(0, 0.5, 0)
 button.Parent = frame
-print("Button created.")
+print("Attack button created.")
 
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+closeButton.Parent = frame
+print("Close button created.")
+
+-- Attack button functionality
 button.MouseButton1Click:Connect(function()
-    print("Button clicked!")
+    print("Attack button clicked!")
     performAttack()
+end)
+
+-- Close button functionality
+closeButton.MouseButton1Click:Connect(function()
+    print("Close button clicked! Destroying GUI.")
+    screenGui:Destroy()
 end)
 
 -- Fallback keybind (press F)
@@ -182,4 +200,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
-
