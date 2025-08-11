@@ -1,5 +1,12 @@
-print("Script injected successfully!")  -- Debug to confirm injection
-local version = "v1.2 a"
+-- Test injection
+local success, errorMsg = pcall(function()
+    print("Script injected successfully!")
+end)
+if not success then
+    warn("Initial print failed: " .. tostring(errorMsg))
+end
+
+local version = "v1.1 d"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -299,4 +306,56 @@ updateDropdown()
 
 -- Periodic dropdown refresh (every 30 seconds)
 table.insert(connections, spawn(function()
-    while screen
+    while screenGui.Parent do
+        wait(30)
+        print("Refreshing dropdown...")
+        updateDropdown()
+    end
+end))
+
+-- Attack button functionality
+table.insert(connections, button.MouseButton1Click:Connect(function()
+    print("Attack button clicked!")
+    performAttack(dropdownFrame)
+end))
+
+-- Select player button functionality
+table.insert(connections, selectButton.MouseButton1Click:Connect(function()
+    print("Select player button clicked! Attempting to set target: " .. dropdownButton.Text)
+    updateTargetPlayer(dropdownButton.Text)
+end))
+
+-- Dropdown toggle
+table.insert(connections, dropdownButton.MouseButton1Click:Connect(function()
+    print("Dropdown button clicked!")
+    toggleDropdown()
+end))
+
+-- Set return point button functionality
+table.insert(connections, setReturnButton.MouseButton1Click:Connect(function()
+    returnPosition = myRoot.Position
+    print("Return position updated: " .. tostring(returnPosition))
+end))
+
+-- Close button functionality
+table.insert(connections, closeButton.MouseButton1Click:Connect(function()
+    print("Close button clicked! Destroying GUI and cleaning up.")
+    for _, connection in ipairs(connections) do
+        connection:Disconnect()
+    end
+    connections = {}
+    screenGui:Destroy()
+    if getfenv().script then
+        getfenv().script:Destroy()
+    end
+end))
+
+-- Fallback keybind (press F)
+table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.F then
+        print("F key pressed!")
+        performAttack(dropdownFrame)
+    end
+end))
+print("Keybind set for F key.")
