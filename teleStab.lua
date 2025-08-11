@@ -1,5 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
-print("v1.1 c")
+local version = "v1.1 d"
 local targetPartialName = "Strangerthink496"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
@@ -182,7 +182,7 @@ frame.Parent = screenGui
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(0.8, 0, 0.5, 0)
 button.Position = UDim2.new(0.1, 0, 0.1, 0)
-button.Text = "Execute Attack"
+button.Text = "Execute Attack" .. version
 button.TextColor3 = Color3.new(1, 1, 1)
 button.BackgroundColor3 = Color3.new(0, 0.5, 0)
 button.Parent = frame
@@ -267,6 +267,7 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     end
 end))
 print("Keybind set for F key.")
+
 
 
 
