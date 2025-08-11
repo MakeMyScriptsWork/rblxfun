@@ -5,7 +5,8 @@ local LocalPlayer = Players.LocalPlayer
 local targetPlayer = Players:FindFirstChild(targetName)if not targetPlayer or not targetPlayer.Character or not LocalPlayer.Character then
     TextChatService.TextChannels.RBXSystem:DisplaySystemMessage("Target player or character not found.")
     return
-endlocal myChar = LocalPlayer.Character
+end
+    local myChar = LocalPlayer.Character
 local targetChar = targetPlayer.Character
 local myHRP = myChar:FindFirstChild("HumanoidRootPart")
 local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")if not myHRP or not targetHRP then
@@ -32,6 +33,7 @@ teleportBehind()
 wait(0.1)
 equippedTool:Activate()  -- Stab again-- Optional: Teleport back again
 myHRP.CFrame = originalCFrame
+
 
 
 
