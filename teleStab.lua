@@ -1,4 +1,4 @@
-local targetPartialName = "H0ldDamned"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "H0lyDamned"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -69,14 +69,13 @@ print("Original position saved: " .. tostring(originalPosition))
 
 -- Function to force teleport
 local function forceTeleport(targetCFrame, duration)
-    duration = duration or 0.3  -- Shortened to mimic click teleport
+    duration = duration or 0.3  -- Short duration to mimic click teleport
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
         pcall(function()
             myRoot.CFrame = targetCFrame
             myRoot.Velocity = Vector3.new(0, 0, 0)
-            myRoot.RotVelocity = Vector3.new(0, 0, 0)
             myRoot.Anchored = false
         end)
         if tick() - startTime >= duration then
@@ -88,20 +87,19 @@ local function forceTeleport(targetCFrame, duration)
     end
 end
 
--- Function to calculate behind CFrame, updated on each call
+-- Function to calculate behind CFrame, updated each call
 local function getBehindCFrame(targetRoot)
     local distance = 3  -- Studs behind
-    local heightOffset = 0.5  -- Slight offset to avoid clipping
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
-    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y + heightOffset, behindPosition.Z)
+    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y, behindPosition.Z)  -- Match target's Y exactly
     local targetPosition = targetRoot.Position
     print("Teleport target position: " .. tostring(landingPosition))
     return CFrame.lookAt(landingPosition, targetPosition)
 end
 
--- Attack function, checks for target character each time
+-- Attack function, updates target character each time
 local function performAttack()
-    -- Re-check target character in case it respawned
+    -- Re-check target character
     targetChar = targetPlayer.Character
     if not targetChar then
         print("Target character not found during attack.")
@@ -118,7 +116,7 @@ local function performAttack()
         print("Starting first teleport and attack")
         local behindCFrame = getBehindCFrame(targetRoot)
         forceTeleport(behindCFrame)
-        wait(0.3)
+        wait(0.2)
         equippedTool:Activate()
         print("First attack activated.")
 
@@ -131,9 +129,9 @@ local function performAttack()
 
         -- Second attack sequence
         print("Starting second teleport and attack")
-        behindCFrame = getBehindCFrame(targetRoot)  -- Recalculate for new position
+        behindCFrame = getBehindCFrame(targetRoot)  -- Recalculate
         forceTeleport(behindCFrame)
-        wait(0.3)
+        wait(0.2)
         equippedTool:Activate()
         print("Second attack activated.")
 
@@ -175,7 +173,7 @@ button.MouseButton1Click:Connect(function()
     performAttack()
 end)
 
--- Fallback keybind (press F to trigger)
+-- Fallback keybind (press F)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F then
@@ -184,5 +182,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
-
-
