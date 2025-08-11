@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.3 b"
+local version = "v1.3 c"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -232,7 +232,7 @@ local success, guiError = pcall(function()
 
     local dropdownButton = Instance.new("TextButton")
     dropdownButton.Size = UDim2.new(0.8, 0, 0.25, 0)
-    dropdownButton.Position = UDim2.new(0.1, 0, 0.05, 0)  -- Moved farther up
+    dropdownButton.Position = UDim2.new(0.1, 0, 0.05, 0)
     dropdownButton.Text = "Select a player"
     dropdownButton.TextColor3 = Color3.new(1, 1, 1)
     dropdownButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
@@ -240,8 +240,8 @@ local success, guiError = pcall(function()
     print("Dropdown button created.")
 
     local dropdownFrame = Instance.new("ScrollingFrame")
-    dropdownFrame.Size = UDim2.new(0.8, 0, 0, 200)  -- 200 pixels (~10 items)
-    dropdownFrame.Position = UDim2.new(0.1, 0, 0.3, 0)  -- Adjusted for higher button
+    dropdownFrame.Size = UDim2.new(0.8, 0, 0, 200)
+    dropdownFrame.Position = UDim2.new(0.1, 0, 0.3, 0)
     dropdownFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
     dropdownFrame.Visible = false
     dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -340,8 +340,9 @@ local success, guiError = pcall(function()
         end
     end)
 
+    -- Fixed manual drag handler
     local dragging = false
-    local lastMousePos
+    local dragStartPos
     connections[#connections + 1] = UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and not dropdownFrame.Visible then
             local mousePos = input.Position
@@ -350,6 +351,7 @@ local success, guiError = pcall(function()
             if mousePos.X >= framePos.X and mousePos.X <= framePos.X + frameSize.X and
                mousePos.Y >= framePos.Y and mousePos.Y <= framePos.Y + frameSize.Y then
                 dragging = true
+                dragStartPos = frame.Position
                 lastMousePos = mousePos
                 print("Started dragging GUI")
             end
@@ -365,9 +367,12 @@ local success, guiError = pcall(function()
 
     connections[#connections + 1] = UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - lastMousePos
-            frame.Position = UDim2.new(0, frame.Position.X.Offset + delta.X, 0, frame.Position.Y.Offset + delta.Y)
-            lastMousePos = input.Position
+            local mousePos = input.Position
+            local delta = mousePos - lastMousePos
+            local newX = dragStartPos.X.Offset + delta.X
+            local newY = dragStartPos.Y.Offset + delta.Y
+            frame.Position = UDim2.new(dragStartPos.X.Scale, newX, dragStartPos.Y.Scale, newY)
+            lastMousePos = mousePos
         end
     end)
 
