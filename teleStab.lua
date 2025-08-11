@@ -84,30 +84,12 @@ local function forcePivot(targetCFrame, duration)
     end
 end
 
--- Function to calculate behind CFrame with raycast for ground
+-- Function to calculate behind CFrame without raycast, using target's Y level
 local function getBehindCFrame()
-    local distance = 3  -- Studs behind
+    local distance = 3  -- Studs behind, adjust if needed (try 4 or 5 if too close)
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
+    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y, behindPosition.Z)
     local targetPosition = targetRoot.Position
-    
-    -- Raycast down to find ground
-    local rayOrigin = behindPosition + Vector3.new(0, 50, 0)
-    local rayDirection = Vector3.new(0, -100, 0)
-    local rayParams = RaycastParams.new()
-    rayParams.FilterDescendantsInstances = {myChar, targetChar}
-    rayParams.FilterType = Enum.RaycastFilterType.Exclude
-    rayParams.IgnoreWater = true
-    
-    local rayResult = workspace:Raycast(rayOrigin, rayDirection, rayParams)
-    
-    local landingPosition = behindPosition
-    if rayResult then
-        landingPosition = rayResult.Position + Vector3.new(0, myChar:GetExtentsSize().Y / 2 + 0.1, 0)
-    else
-        print("No ground found; using air position.")
-        landingPosition = behindPosition + Vector3.new(0, 3, 0)
-    end
-    
     return CFrame.lookAt(landingPosition, targetPosition)
 end
 
@@ -144,5 +126,3 @@ end)
 if not success then
     print("Error in script execution: " .. err)
 end
-
-
