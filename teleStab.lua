@@ -1,4 +1,4 @@
-local targetName = "tjabdal"  -- Replace with the EXACT player name (case-sensitive)
+local targetName = "UlmanCase"  -- Replace with the EXACT player name (case-sensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -49,7 +49,7 @@ print("Original position saved.")
 
 -- Function to force teleport by setting CFrame repeatedly using RenderStepped
 local function forceTeleport(targetCFrame, duration)
-    duration = duration or 0.2  -- Increased to 0.2 seconds
+    duration = duration or 0.3  -- Increased to 0.3 seconds
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
@@ -67,12 +67,31 @@ local function forceTeleport(targetCFrame, duration)
     end
 end
 
--- Function to calculate behind CFrame
+-- Function to calculate behind position and raycast to ground like click teleport
 local function getBehindCFrame()
-    local distance = 3  -- Studs behind, adjust if needed
+    local distance = 4  -- Increased studs behind, adjust if needed
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
     local targetPosition = targetRoot.Position
-    return CFrame.lookAt(behindPosition, targetPosition)
+    
+    -- Raycast down from above the behind position to find ground
+    local rayOrigin = behindPosition + Vector3.new(0, 50, 0)  -- Start 50 studs above
+    local rayDirection = Vector3.new(0, -100, 0)  -- Down 100 studs
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {myChar, targetChar}  -- Ignore self and target
+    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+    rayParams.IgnoreWater = true
+    
+    local rayResult = workspace:Raycast(rayOrigin, rayDirection, rayParams)
+    
+    local landingPosition = behindPosition
+    if rayResult then
+        landingPosition = rayResult.Position + Vector3.new(0, myChar:GetExtentsSize().Y / 2 + 0.1, 0)  -- Above ground
+    else
+        print("No ground found behind target; using air position.")
+        landingPosition = behindPosition + Vector3.new(0, 3, 0)  -- Fallback to air
+    end
+    
+    return CFrame.lookAt(landingPosition, targetPosition)
 end
 
 -- Main sequence wrapped in pcall for error catching
@@ -81,7 +100,7 @@ local success, err = pcall(function()
     print("Starting first teleport and attack")
     local behindCFrame = getBehindCFrame()
     forceTeleport(behindCFrame)
-    wait(0.1)  -- Extra sync delay
+    wait(0.2)  -- Increased sync delay
     equippedTool:Activate()  -- Stab/attack
     print("First attack activated.")
 
@@ -96,7 +115,7 @@ local success, err = pcall(function()
     print("Starting second teleport and attack")
     behindCFrame = getBehindCFrame()  -- Recalculate in case target moved
     forceTeleport(behindCFrame)
-    wait(0.1)
+    wait(0.2)
     equippedTool:Activate()  -- Stab again
     print("Second attack activated.")
 
