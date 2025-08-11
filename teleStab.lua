@@ -1,4 +1,4 @@
-local targetName = "flawed661"  -- Replace with the actual player name
+local targetName = "Dometrix0"  -- Replace with the actual player name
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local targetPlayer = Players:FindFirstChild(targetName)
