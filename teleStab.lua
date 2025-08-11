@@ -1,4 +1,4 @@
-local targetPartialName = "LampLight"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "LampLightGlitter"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
