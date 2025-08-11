@@ -135,7 +135,6 @@ local function performAttack()
         -- First attack sequence
         print("Starting first teleport and attack")
         forceTeleport(targetRoot)
-        wait(0.2)
         equippedTool:Activate()
         print("First attack activated.")
 
@@ -268,4 +267,5 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     end
 end))
 print("Keybind set for F key.")
+
 
