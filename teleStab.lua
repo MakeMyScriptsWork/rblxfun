@@ -69,7 +69,7 @@ print("Original position saved: " .. tostring(originalPosition))
 
 -- Function to force teleport
 local function forceTeleport(targetCFrame, duration)
-    duration = duration or 0.3  -- Short duration to mimic click teleport
+    duration = duration or 0.2  -- Short duration to mimic click teleport
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
@@ -182,3 +182,4 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
+
