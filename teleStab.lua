@@ -1,4 +1,4 @@
-local targetPartialName = "Budget"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "H0ldDamned"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -184,4 +184,5 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
+
 
