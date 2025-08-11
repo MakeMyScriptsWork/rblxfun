@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.3 a"
+local version = "v1.3 b"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -232,7 +232,7 @@ local success, guiError = pcall(function()
 
     local dropdownButton = Instance.new("TextButton")
     dropdownButton.Size = UDim2.new(0.8, 0, 0.25, 0)
-    dropdownButton.Position = UDim2.new(0.1, 0, 0.15, 0)  -- Moved higher
+    dropdownButton.Position = UDim2.new(0.1, 0, 0.05, 0)  -- Moved farther up
     dropdownButton.Text = "Select a player"
     dropdownButton.TextColor3 = Color3.new(1, 1, 1)
     dropdownButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
@@ -240,8 +240,8 @@ local success, guiError = pcall(function()
     print("Dropdown button created.")
 
     local dropdownFrame = Instance.new("ScrollingFrame")
-    dropdownFrame.Size = UDim2.new(0.8, 0, 0.6, 0)  -- Larger to show more players
-    dropdownFrame.Position = UDim2.new(0.1, 0, 0.35, 0)  -- Below dropdown button
+    dropdownFrame.Size = UDim2.new(0.8, 0, 0, 200)  -- 200 pixels (~10 items)
+    dropdownFrame.Position = UDim2.new(0.1, 0, 0.3, 0)  -- Adjusted for higher button
     dropdownFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
     dropdownFrame.Visible = false
     dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
