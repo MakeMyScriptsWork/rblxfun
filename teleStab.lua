@@ -3,10 +3,9 @@ local targetPartialName = "ejgamer81"  -- Replace with partial or full player na
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 
--- Function to get players by partial name (similar to Infinite Yield's getPlayer)
+-- Function to get players by partial name
 local function getPlayersByName(name)
     name = name:lower()
     local matches = {}
@@ -18,9 +17,9 @@ local function getPlayersByName(name)
     return matches
 end
 
--- Wait for local character if not loaded
+-- Wait for local character
 local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-print("Local character loaded.")
+print("Local character loaded: " .. myChar.Name)
 
 -- Find target players
 local targetPlayers = getPlayersByName(targetPartialName)
@@ -33,14 +32,17 @@ end
 local targetPlayer = targetPlayers[1]
 print("Target player found: " .. targetPlayer.Name)
 
--- Wait for target character if not loaded
+-- Wait for target character
 local targetChar = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
-print("Target character loaded.")
+print("Target character loaded: " .. targetChar.Name)
 
 local function getRoot(char)
     local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
     if root then
-        root.Anchored = false  -- Ensure not anchored
+        root.Anchored = false
+        print("Root found for " .. char.Name .. ": " .. root.Name)
+    else
+        print("No root found for " .. char.Name)
     end
     return root
 end
@@ -53,7 +55,7 @@ if not myRoot or not targetRoot then
     return
 end
 
--- Assume the tool is already equipped
+-- Check for equipped tool
 local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
 if not equippedTool then
     print("No tool equipped.")
@@ -65,34 +67,34 @@ print("Tool found: " .. equippedTool.Name)
 local originalPivot = myChar:GetPivot()
 print("Original position saved.")
 
--- Function to force pivot by setting repeatedly
+-- Function to force pivot
 local function forcePivot(targetCFrame, duration)
-    duration = duration or 0.5  -- 0.5 seconds to override reverts
+    duration = duration or 0.8  -- Increased to 0.8s to fight reversion
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
         pcall(function()
-            myChar:PivotTo(targetCFrame)
-            myRoot.Velocity = Vector3.new(0, 0, 0)  -- Reset velocity to prevent flinging
+            myRoot.CFrame = targetCFrame  -- Fallback to direct CFrame
+            myRoot.Velocity = Vector3.new(0, 0, 0)
             myRoot.Anchored = false
         end)
         if tick() - startTime >= duration then
             connection:Disconnect()
         end
     end)
-    -- Wait for the duration
     while tick() - startTime < duration do
         RunService.RenderStepped:Wait()
     end
 end
 
--- Function to calculate behind CFrame without raycast, using target's Y level with adjustment
+-- Function to calculate behind CFrame
 local function getBehindCFrame()
-    local distance = 3  -- Studs behind, adjust if needed (try 4 or 5 if too close)
-    local heightOffset = -2  -- Adjust this value down (more negative) if still too high, or up if too low
+    local distance = 3  -- Studs behind
+    local heightOffset = 0  -- No height offset, match target's Y exactly
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
     local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y + heightOffset, behindPosition.Z)
     local targetPosition = targetRoot.Position
+    print("Teleport target position: " .. tostring(landingPosition))
     return CFrame.lookAt(landingPosition, targetPosition)
 end
 
@@ -103,7 +105,7 @@ local function performAttack()
         print("Starting first teleport and attack")
         local behindCFrame = getBehindCFrame()
         forcePivot(behindCFrame)
-        wait(0.2)
+        wait(0.3)  -- Increased sync delay
         equippedTool:Activate()
         print("First attack activated.")
 
@@ -116,9 +118,9 @@ local function performAttack()
 
         -- Second attack sequence
         print("Starting second teleport and attack")
-        behindCFrame = getBehindCFrame()  -- Recalculate
+        behindCFrame = getBehindCFrame()
         forcePivot(behindCFrame)
-        wait(0.2)
+        wait(0.3)
         equippedTool:Activate()
         print("Second attack activated.")
 
@@ -134,20 +136,39 @@ end
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.CoreGui  -- For exploits, use CoreGui to make it visible
+-- Try PlayerGui first, fallback to CoreGui
+screenGui.Parent = LocalPlayer:FindFirstChild("PlayerGui") or game.CoreGui
 screenGui.Name = "AttackGui"
+screenGui.ResetOnSpawn = false
+print("GUI created in " .. screenGui.Parent.Name)
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 200, 0, 100)
 frame.Position = UDim2.new(0.5, -100, 0.5, -50)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.BorderSizePixel = 2
 frame.Parent = screenGui
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(1, 0, 1, 0)
+button.Size = UDim2.new(0.8, 0, 0.6, 0)
+button.Position = UDim2.new(0.1, 0, 0.2, 0)
 button.Text = "Execute Attack"
 button.TextColor3 = Color3.new(1, 1, 1)
-button.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+button.BackgroundColor3 = Color3.new(0, 0.5, 0)
 button.Parent = frame
+print("Button created.")
 
-button.MouseButton1Click:Connect(performAttack)
+button.MouseButton1Click:Connect(function()
+    print("Button clicked!")
+    performAttack()
+end)
+
+-- Fallback keybind (press F to trigger)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.F then
+        print("F key pressed!")
+        performAttack()
+    end
+end)
+print("Keybind set for F key.")
