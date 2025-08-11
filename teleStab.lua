@@ -34,11 +34,22 @@ local function getPlayersByName(name)
     return matches
 end
 
+-- Function to get all players for dropdown
+local function getPlayerList()
+    local playerList = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then  -- Exclude local player
+            table.insert(playerList, player.Name)
+        end
+    end
+    return playerList
+end
+
 -- Wait for local character
 local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 print("Local character loaded: " .. myChar.Name)
 
--- Default target player (set via GUI)
+-- Default target player (set via dropdown)
 local targetPlayer = nil
 local targetChar = nil
 local targetRoot = nil
@@ -120,15 +131,17 @@ local function forceTeleport(targetRoot, duration)
 end
 
 -- Attack function
-local function performAttack()
+local function performAttack(dropdown)
     if not targetPlayer or not targetChar then
-        print("No target player selected. Enter a name in the text box.")
+        print("No target player selected. Select a player from the dropdown.")
         return
     end
     -- Re-check target character
     targetChar = targetPlayer.Character
     if not targetChar then
         print("Target character not found during attack.")
+        -- Refresh dropdown if target left
+        updateDropdown(dropdown)
         return
     end
     targetRoot = getRoot(targetChar)
@@ -166,6 +179,26 @@ local function performAttack()
     if not success then
         print("Error in attack sequence: " .. err)
     end
+
+    -- Check if target still exists after attack
+    if not Players:FindFirstChild(targetPlayer.Name) then
+        print("Target player left. Refreshing dropdown.")
+        updateDropdown(dropdown)
+    end
+end
+
+-- Function to update dropdown options
+local function updateDropdown(dropdown)
+    dropdown:Clear()
+    local playerList = getPlayerList()
+    for _, name in ipairs(playerList) do
+        dropdown:Add(name)
+    end
+    dropdown.Selected = playerList[1] or "Select a player"
+    if playerList[1] then
+        updateTargetPlayer(playerList[1])
+    end
+    print("Dropdown updated with " .. #playerList .. " players.")
 end
 
 -- Create GUI
@@ -176,8 +209,8 @@ screenGui.ResetOnSpawn = false
 print("GUI created in " .. screenGui.Parent.Name)
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 150, 0, 120)  -- Smaller size
-frame.Position = UDim2.new(0.1, 0, 0.5, -60)  -- Further left
+frame.Size = UDim2.new(0, 150, 0, 150)  -- Slightly taller for dropdown
+frame.Position = UDim2.new(0.1, 0, 0.5, -75)  -- Further left, centered vertically
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.BorderSizePixel = 2
 frame.Active = true  -- Enable dragging
@@ -185,93 +218,7 @@ frame.Draggable = true  -- Make GUI movable
 frame.Parent = screenGui
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0.25, 0)
-button.Position = UDim2.new(0.1, 0, 0.35, 0)
+button.Size = UDim2.new(0.8, 0, 0.2, 0)
+button.Position = UDim2.new(0.1, 0, 0.45, 0)
 button.Text = "Execute Attack " .. version
-button.TextColor3 = Color3.new(1, 1, 1)
-button.BackgroundColor3 = Color3.new(0, 0.5, 0)
-button.Parent = frame
-print("Attack button created.")
-
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 20, 0, 20)
-closeButton.Position = UDim2.new(1, -25, 0, 5)
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.new(1, 1, 1)
-closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
-closeButton.Parent = frame
-print("Close button created.")
-
-local setReturnButton = Instance.new("TextButton")
-setReturnButton.Size = UDim2.new(0, 20, 0, 20)
-setReturnButton.Position = UDim2.new(1, -50, 0, 5)
-setReturnButton.Text = "R"
-setReturnButton.TextColor3 = Color3.new(1, 1, 1)
-setReturnButton.BackgroundColor3 = Color3.new(0, 0, 1)
-setReturnButton.Parent = frame
-print("Return point button created.")
-
-local playerTextBox = Instance.new("TextBox")
-playerTextBox.Size = UDim2.new(0.8, 0, 0.2, 0)
-playerTextBox.Position = UDim2.new(0.1, 0, 0.05, 0)
-playerTextBox.Text = "Strangerthink496"  -- Default to your provided name
-playerTextBox.TextColor3 = Color3.new(1, 1, 1)
-playerTextBox.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-playerTextBox.ClearTextOnFocus = true
-playerTextBox.Parent = frame
-print("Player text box created.")
-
-local selectButton = Instance.new("TextButton")
-selectButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-selectButton.Position = UDim2.new(0.1, 0, 0.65, 0)
-selectButton.Text = "Select Player"
-selectButton.TextColor3 = Color3.new(1, 1, 1)
-selectButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0)
-selectButton.Parent = frame
-print("Select player button created.")
-
--- Attack button functionality
-table.insert(connections, button.MouseButton1Click:Connect(function()
-    print("Attack button clicked!")
-    performAttack()
-end))
-
--- Select player button functionality
-table.insert(connections, selectButton.MouseButton1Click:Connect(function()
-    print("Select player button clicked! Attempting to set target: " .. playerTextBox.Text)
-    updateTargetPlayer(playerTextBox.Text)
-end))
-
--- Set return point button functionality
-table.insert(connections, setReturnButton.MouseButton1Click:Connect(function()
-    returnPosition = myRoot.Position
-    print("Return position updated: " .. tostring(returnPosition))
-end))
-
--- Close button functionality
-table.insert(connections, closeButton.MouseButton1Click:Connect(function()
-    print("Close button clicked! Destroying GUI and cleaning up.")
-    for _, connection in ipairs(connections) do
-        connection:Disconnect()
-    end
-    connections = {}
-    screenGui:Destroy()
-    if getfenv().script then
-        getfenv().script:Destroy()
-    end
-end))
-
--- Fallback keybind (press F)
-table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.F then
-        print("F key pressed!")
-        performAttack()
-    end
-end))
-print("Keybind set for F key.")
-
--- Initial target player setup
-print("Attempting initial target setup for: " .. playerTextBox.Text)
-updateTargetPlayer(playerTextBox.Text)
-
+button
