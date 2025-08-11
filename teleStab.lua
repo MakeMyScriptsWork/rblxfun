@@ -1,5 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
-local version = "v1.1 d"
+local version = "v1.2"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -222,3 +222,4 @@ button.Size = UDim2.new(0.8, 0, 0.2, 0)
 button.Position = UDim2.new(0.1, 0, 0.45, 0)
 button.Text = "Execute Attack " .. version
 button
+
