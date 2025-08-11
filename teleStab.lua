@@ -1,17 +1,29 @@
-local targetPartialName = "crispybadonkadonk"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "Ang_bugado"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Function to get players by partial name
+-- Function to get players by partial name with retry
 local function getPlayersByName(name)
     name = name:lower()
     local matches = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player.Name:lower():find(name, 1, true) or (player.DisplayName and player.DisplayName:lower():find(name, 1, true)) then
-            table.insert(matches, player)
+    local attempts = 0
+    local maxAttempts = 5  -- Retry up to 5 times
+    while #matches == 0 and attempts < maxAttempts do
+        for _, player in ipairs(Players:GetPlayers()) do
+            local playerName = player.Name:lower()
+            local displayName = player.DisplayName and player.DisplayName:lower() or ""
+            print("Checking player: Name=" .. player.Name .. ", DisplayName=" .. (player.DisplayName or "None"))
+            if playerName:find(name, 1, true) or displayName:find(name, 1, true) then
+                table.insert(matches, player)
+            end
+        end
+        if #matches == 0 then
+            attempts = attempts + 1
+            print("No matches for '" .. name .. "' on attempt " .. attempts .. ". Waiting...")
+            wait(1)  -- Wait 1s before retrying
         end
     end
     return matches
@@ -24,13 +36,13 @@ print("Local character loaded: " .. myChar.Name)
 -- Find target players
 local targetPlayers = getPlayersByName(targetPartialName)
 if #targetPlayers == 0 then
-    print("No matching target player found.")
+    print("No matching target player found after retries.")
     return
 end
 
 -- Take the first matching player
 local targetPlayer = targetPlayers[1]
-print("Target player found: " .. targetPlayer.Name)
+print("Target player found: " .. targetPlayer.Name .. " (DisplayName: " .. (targetPlayer.DisplayName or "None") .. ")")
 
 -- Wait for target character
 local targetChar = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
@@ -200,8 +212,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
-
-
-
-
-
