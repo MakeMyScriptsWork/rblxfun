@@ -32,7 +32,7 @@ end
 
 -- Wait for local character
 local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-print("Local character loaded: " .. myChar.Name)
+print("Localaaaa character loaded: " .. myChar.Name)
 
 -- Find target players
 local targetPlayers = getPlayersByName(targetPartialName)
@@ -44,3 +44,4 @@ end
 -- Take the first matching player
 local targetPlayer = targetPlayers[1]
 print
+
