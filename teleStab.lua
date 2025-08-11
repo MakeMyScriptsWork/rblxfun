@@ -154,9 +154,8 @@ local function performAttack()
 
         -- Second attack sequence
         print("Starting second teleport and attack")
-        forceTeleport(targetRoot)
-        wait(0.2)
         equippedTool:Activate()
+        forceTeleport(targetRoot)
         print("Second attack activated.")
 
         -- Final back
@@ -275,3 +274,4 @@ print("Keybind set for F key.")
 -- Initial target player setup
 print("Attempting initial target setup for: " .. playerTextBox.Text)
 updateTargetPlayer(playerTextBox.Text)
+
