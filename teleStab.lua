@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.1 g"
+local version = "v1.2"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -105,10 +105,6 @@ local function updateTargetPlayer(name)
     return targetRoot ~= nil
 end
 
--- Save original position (default return point)
-local returnPosition = myRoot.Position
-print("Default return position saved: " .. tostring(returnPosition))
-
 -- Function to calculate behind CFrame
 local function getBehindCFrame(targetRoot)
     local distance = 3  -- Studs behind
@@ -165,6 +161,9 @@ local function performAttack(dropdown)
         print("No tool equipped. Please equip a tool to attack.")
         return
     end
+    -- Save return position at the time of attack
+    local returnPosition = myRoot.Position
+    print("Attack return position saved: " .. tostring(returnPosition))
 
     local success, err = pcall(function()
         -- First attack sequence
@@ -212,8 +211,8 @@ local success, guiError = pcall(function()
     print("GUI created in " .. screenGui.Parent.Name)
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 150, 0, 150)  -- Smaller size
-    frame.Position = UDim2.new(0.1, 0, 0.5, -75)  -- Further left
+    frame.Size = UDim2.new(0, 150, 0, 120)  -- Smaller height (no Select Player button)
+    frame.Position = UDim2.new(0.1, 0, 0.5, -60)  -- Further left
     frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
     frame.BorderSizePixel = 2
     frame.Active = true  -- Enable dragging
@@ -222,8 +221,8 @@ local success, guiError = pcall(function()
     print("Frame created, Draggable: " .. tostring(frame.Draggable) .. ", Active: " .. tostring(frame.Active))
 
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.8, 0, 0.2, 0)
-    button.Position = UDim2.new(0.1, 0, 0.45, 0)
+    button.Size = UDim2.new(0.8, 0, 0.25, 0)
+    button.Position = UDim2.new(0.1, 0, 0.65, 0)  -- Adjusted for new layout
     button.Text = "Execute Attack " .. version
     button.TextColor3 = Color3.new(1, 1, 1)
     button.BackgroundColor3 = Color3.new(0, 0.5, 0)
@@ -239,19 +238,10 @@ local success, guiError = pcall(function()
     closeButton.Parent = frame
     print("Close button created.")
 
-    local setReturnButton = Instance.new("TextButton")
-    setReturnButton.Size = UDim2.new(0, 20, 0, 20)
-    setReturnButton.Position = UDim2.new(1, -50, 0, 5)
-    setReturnButton.Text = "R"
-    setReturnButton.TextColor3 = Color3.new(1, 1, 1)
-    setReturnButton.BackgroundColor3 = Color3.new(0, 0, 1)
-    setReturnButton.Parent = frame
-    print("Return point button created.")
-
     -- Create dropdown
     local dropdownButton = Instance.new("TextButton")
-    dropdownButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-    dropdownButton.Position = UDim2.new(0.1, 0, 0.15, 0)
+    dropdownButton.Size = UDim2.new(0.8, 0, 0.25, 0)
+    dropdownButton.Position = UDim2.new(0.1, 0, 0.35, 0)  -- Adjusted for new layout
     dropdownButton.Text = "Select a player"
     dropdownButton.TextColor3 = Color3.new(1, 1, 1)
     dropdownButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
@@ -260,7 +250,7 @@ local success, guiError = pcall(function()
 
     local dropdownFrame = Instance.new("ScrollingFrame")
     dropdownFrame.Size = UDim2.new(0.8, 0, 0.4, 0)
-    dropdownFrame.Position = UDim2.new(0.1, 0, 0.35, 0)
+    dropdownFrame.Position = UDim2.new(0.1, 0, 0.55, 0)  -- Below dropdown button
     dropdownFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
     dropdownFrame.Visible = false
     dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -268,36 +258,17 @@ local success, guiError = pcall(function()
     dropdownFrame.Parent = frame
     print("Dropdown frame created.")
 
-    local selectButton = Instance.new("TextButton")
-    selectButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-    selectButton.Position = UDim2.new(0.1, 0, 0.75, 0)
-    selectButton.Text = "Select Player"
-    selectButton.TextColor3 = Color3.new(1, 1, 1)
-    selectButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0)
-    selectButton.Parent = frame
-    print("Select player button created.")
-
-    -- Button connections (set up before dropdown to ensure they work)
+    -- Button connections (set up before dropdown)
     local success, buttonError = pcall(function()
         connections[#connections + 1] = button.MouseButton1Click:Connect(function()
             print("Attack button clicked!")
             performAttack(dropdownFrame)
         end)
 
-        connections[#connections + 1] = selectButton.MouseButton1Click:Connect(function()
-            print("Select player button clicked! Attempting to set target: " .. dropdownButton.Text)
-            updateTargetPlayer(dropdownButton.Text)
-        end)
-
         connections[#connections + 1] = dropdownButton.MouseButton1Click:Connect(function()
             print("Dropdown button clicked!")
             dropdownFrame.Visible = not dropdownFrame.Visible
             print("Dropdown toggled: " .. tostring(dropdownFrame.Visible))
-        end)
-
-        connections[#connections + 1] = setReturnButton.MouseButton1Click:Connect(function()
-            returnPosition = myRoot.Position
-            print("Return position updated: " .. tostring(returnPosition))
         end)
 
         connections[#connections + 1] = closeButton.MouseButton1Click:Connect(function()
@@ -372,7 +343,7 @@ local success, guiError = pcall(function()
         end
     end)
 
-    -- Fallback manual drag handler (if Draggable fails)
+    -- Fallback manual drag handler
     local dragging = false
     local lastMousePos
     connections[#connections + 1] = UserInputService.InputBegan:Connect(function(input)
@@ -422,4 +393,3 @@ if not success then
 end
 
 print("Keybind set for F key.")
-
