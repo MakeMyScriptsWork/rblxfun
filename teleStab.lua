@@ -1,18 +1,20 @@
 local targetName = "flawed661"  -- Replace with the actual player namelocal Players = game:GetService("Players")
+local TextChatService = game:GetService("TextChatService")
 local LocalPlayer = Players.LocalPlayer
 local targetPlayer = Players:FindFirstChild(targetName)if not targetPlayer or not targetPlayer.Character or not LocalPlayer.Character then
-    print("Target player or character not found.")
+    TextChatService.TextChannels.RBXSystem:DisplaySystemMessage("Target player or character not found.")
     return
 endlocal myChar = LocalPlayer.Character
 local targetChar = targetPlayer.Character
 local myHRP = myChar:FindFirstChild("HumanoidRootPart")
 local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")if not myHRP or not targetHRP then
     print("HumanoidRootPart not found.")
+    TextChatService.TextChannels.RBXSystem:DisplaySystemMessage("HumanoidRootPart not found.")
     return
 end-- Assume the tool is already equipped in the character's hand
 local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
 if not equippedTool then
-    print("No tool equipped.")
+    TextChatService.TextChannels.RBXSystem:DisplaySystemMessage("No tool equipped.")
     return
 end-- Save original position
 local originalCFrame = myHRP.CFrame-- Function to teleport behind target
@@ -29,5 +31,6 @@ teleportBehind()
 wait(0.1)
 equippedTool:Activate()  -- Stab again-- Optional: Teleport back again
 myHRP.CFrame = originalCFrame
+
 
 
