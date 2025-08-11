@@ -1,4 +1,4 @@
-local targetName = "UlmanCase"  -- Replace with the EXACT player name (case-sensitive)
+local targetName = "astrocarloss"  -- Replace with the EXACT player name (case-sensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -127,3 +127,4 @@ end)
 if not success then
     print("Error in script execution: " .. err)
 end
+
