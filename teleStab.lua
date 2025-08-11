@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.1 e"
+local version = "v1.1 d"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -219,6 +219,7 @@ local success, guiError = pcall(function()
     frame.Active = true  -- Enable dragging
     frame.Draggable = true  -- Make GUI movable
     frame.Parent = screenGui
+    print("Frame created, Draggable: " .. tostring(frame.Draggable) .. ", Active: " .. tostring(frame.Active))
 
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0.8, 0, 0.2, 0)
@@ -296,70 +297,87 @@ local success, guiError = pcall(function()
         clearDropdown()
         local playerList = getPlayerList()
         local yOffset = 0
-        for i, name in ipairs(playerList) do
-            local option = Instance.new("TextButton")
-            option.Size = UDim2.new(1, -4, 0, 20)
-            option.Position = UDim2.new(0, 2, 0, yOffset)
-            option.Text = name
-            option.TextColor3 = Color3.new(1, 1, 1)
-            option.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
-            option.Parent = dropdownFrame
-            table.insert(connections, option.MouseButton1Click:Connect(function()
-                dropdownButton.Text = name
-                dropdownFrame.Visible = false
-                print("Selected player from dropdown: " .. name)
-                updateTargetPlayer(name)
-            end))
-            yOffset = yOffset + 22
+        for _, name in ipairs(playerList) do
+            local success, err = pcall(function()
+                local option = Instance.new("TextButton")
+                option.Size = UDim2.new(1, -4, 0, 20)
+                option.Position = UDim2.new(0, 2, 0, yOffset)
+                option.Text = name
+                option.TextColor3 = Color3.new(1, 1, 1)
+                option.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+                option.Parent = dropdownFrame
+                local connection = option.MouseButton1Click:Connect(function()
+                    dropdownButton.Text = name
+                    dropdownFrame.Visible = false
+                    print("Selected player from dropdown: " .. name)
+                    updateTargetPlayer(name)
+                end)
+                table.insert(connections, connection)
+                yOffset = yOffset + 22
+            end)
+            if not success then
+                print("Error adding dropdown option for " .. name .. ": " .. tostring(err))
+            end
         end
         dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset)
         print("Dropdown updated with " .. #playerList .. " players.")
     end
 
     -- Initial dropdown population
-    updateDropdown()
+    local success, dropdownError = pcall(updateDropdown)
+    if not success then
+        print("Initial dropdown population failed: " .. tostring(dropdownError))
+    end
 
     -- Periodic dropdown refresh (every 30 seconds)
     table.insert(connections, spawn(function()
         while screenGui.Parent do
             wait(30)
             print("Refreshing dropdown...")
-            updateDropdown()
+            local success, err = pcall(updateDropdown)
+            if not success then
+                print("Dropdown refresh failed: " .. tostring(err))
+            end
         end
     end))
 
     -- Button connections
-    table.insert(connections, button.MouseButton1Click:Connect(function()
-        print("Attack button clicked!")
-        performAttack(dropdownFrame)
-    end))
+    local success, buttonError = pcall(function()
+        table.insert(connections, button.MouseButton1Click:Connect(function()
+            print("Attack button clicked!")
+            performAttack(dropdownFrame)
+        end))
 
-    table.insert(connections, selectButton.MouseButton1Click:Connect(function()
-        print("Select player button clicked! Attempting to set target: " .. dropdownButton.Text)
-        updateTargetPlayer(dropdownButton.Text)
-    end))
+        table.insert(connections, selectButton.MouseButton1Click:Connect(function()
+            print("Select player button clicked! Attempting to set target: " .. dropdownButton.Text)
+            updateTargetPlayer(dropdownButton.Text)
+        end))
 
-    table.insert(connections, dropdownButton.MouseButton1Click:Connect(function()
-        print("Dropdown button clicked!")
-        toggleDropdown()
-    end))
+        table.insert(connections, dropdownButton.MouseButton1Click:Connect(function()
+            print("Dropdown button clicked!")
+            toggleDropdown()
+        end))
 
-    table.insert(connections, setReturnButton.MouseButton1Click:Connect(function()
-        returnPosition = myRoot.Position
-        print("Return position updated: " .. tostring(returnPosition))
-    end))
+        table.insert(connections, setReturnButton.MouseButton1Click:Connect(function()
+            returnPosition = myRoot.Position
+            print("Return position updated: " .. tostring(returnPosition))
+        end))
 
-    table.insert(connections, closeButton.MouseButton1Click:Connect(function()
-        print("Close button clicked! Destroying GUI and cleaning up.")
-        for _, connection in ipairs(connections) do
-            connection:Disconnect()
-        end
-        connections = {}
-        screenGui:Destroy()
-        if getfenv().script then
-            getfenv().script:Destroy()
-        end
-    end))
+        table.insert(connections, closeButton.MouseButton1Click:Connect(function()
+            print("Close button clicked! Destroying GUI and cleaning up.")
+            for _, connection in ipairs(connections) do
+                connection:Disconnect()
+            end
+            connections = {}
+            screenGui:Destroy()
+            if getfenv().script then
+                getfenv().script:Destroy()
+            end
+        end))
+    end)
+    if not success then
+        print("Button connection setup failed: " .. tostring(buttonError))
+    end
 
     -- Fallback keybind (press F)
     table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -378,6 +396,5 @@ if not success then
     return
 end
 
-local screenGui = success -- Assign the returned screenGui
+local screenGui = guiError -- Assign the returned screenGui
 print("Keybind set for F key.")
-
