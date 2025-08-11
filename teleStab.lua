@@ -5,7 +5,7 @@ if not success then
     warn("Initial print failed: " .. tostring(errorMsg))
 end
 
-local version = "v1.1 d"
+local version = "v1.1 g"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -422,3 +422,4 @@ if not success then
 end
 
 print("Keybind set for F key.")
+
