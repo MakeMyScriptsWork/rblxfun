@@ -1,5 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
-local version = "v1.2"
+local version = "v1.2 a"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -49,6 +49,23 @@ end
 local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 print("Local character loaded: " .. myChar.Name)
 
+local function getRoot(char)
+    local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+    if root then
+        root.Anchored = false
+        print("Root found for " .. char.Name .. ": " .. root.Name)
+    else
+        print("No root found for " .. char.Name)
+    end
+    return root
+end
+
+local myRoot = getRoot(myChar)
+if not myRoot then
+    print("Local player root part not found.")
+    return
+end
+
 -- Default target player (set via dropdown)
 local targetPlayer = nil
 local targetChar = nil
@@ -68,31 +85,6 @@ local function updateTargetPlayer(name)
     targetRoot = getRoot(targetChar)
     return true
 end
-
-local function getRoot(char)
-    local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-    if root then
-        root.Anchored = false
-        print("Root found for " .. char.Name .. ": " .. root.Name)
-    else
-        print("No root found for " .. char.Name)
-    end
-    return root
-end
-
-local myRoot = getRoot(myChar)
-if not myRoot then
-    print("Local player root part not found.")
-    return
-end
-
--- Check for equipped tool
-local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
-if not equippedTool then
-    print("No tool equipped.")
-    return
-end
-print("Tool found: " .. equippedTool.Name)
 
 -- Save original position (default return point)
 local returnPosition = myRoot.Position
@@ -140,13 +132,18 @@ local function performAttack(dropdown)
     targetChar = targetPlayer.Character
     if not targetChar then
         print("Target character not found during attack.")
-        -- Refresh dropdown if target left
         updateDropdown(dropdown)
         return
     end
     targetRoot = getRoot(targetChar)
     if not targetRoot then
         print("Target root not found during attack.")
+        return
+    end
+    -- Check for equipped tool during attack
+    local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
+    if not equippedTool then
+        print("No tool equipped. Please equip a tool to attack.")
         return
     end
 
@@ -187,20 +184,6 @@ local function performAttack(dropdown)
     end
 end
 
--- Function to update dropdown options
-local function updateDropdown(dropdown)
-    dropdown:Clear()
-    local playerList = getPlayerList()
-    for _, name in ipairs(playerList) do
-        dropdown:Add(name)
-    end
-    dropdown.Selected = playerList[1] or "Select a player"
-    if playerList[1] then
-        updateTargetPlayer(playerList[1])
-    end
-    print("Dropdown updated with " .. #playerList .. " players.")
-end
-
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = LocalPlayer:FindFirstChild("PlayerGui") or game.CoreGui
@@ -209,8 +192,8 @@ screenGui.ResetOnSpawn = false
 print("GUI created in " .. screenGui.Parent.Name)
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 150, 0, 150)  -- Slightly taller for dropdown
-frame.Position = UDim2.new(0.1, 0, 0.5, -75)  -- Further left, centered vertically
+frame.Size = UDim2.new(0, 150, 0, 150)  -- Smaller size
+frame.Position = UDim2.new(0.1, 0, 0.5, -75)  -- Further left
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.BorderSizePixel = 2
 frame.Active = true  -- Enable dragging
@@ -221,5 +204,99 @@ local button = Instance.new("TextButton")
 button.Size = UDim2.new(0.8, 0, 0.2, 0)
 button.Position = UDim2.new(0.1, 0, 0.45, 0)
 button.Text = "Execute Attack " .. version
-button
+button.TextColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.new(0, 0.5, 0)
+button.Parent = frame
+print("Attack button created.")
 
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+closeButton.Parent = frame
+print("Close button created.")
+
+local setReturnButton = Instance.new("TextButton")
+setReturnButton.Size = UDim2.new(0, 20, 0, 20)
+setReturnButton.Position = UDim2.new(1, -50, 0, 5)
+setReturnButton.Text = "R"
+setReturnButton.TextColor3 = Color3.new(1, 1, 1)
+setReturnButton.BackgroundColor3 = Color3.new(0, 0, 1)
+setReturnButton.Parent = frame
+print("Return point button created.")
+
+-- Create dropdown (simulated with TextButton and ScrollingFrame)
+local dropdownButton = Instance.new("TextButton")
+dropdownButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+dropdownButton.Position = UDim2.new(0.1, 0, 0.15, 0)
+dropdownButton.Text = "Select a player"
+dropdownButton.TextColor3 = Color3.new(1, 1, 1)
+dropdownButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+dropdownButton.Parent = frame
+print("Dropdown button created.")
+
+local dropdownFrame = Instance.new("ScrollingFrame")
+dropdownFrame.Size = UDim2.new(0.8, 0, 0.4, 0)
+dropdownFrame.Position = UDim2.new(0.1, 0, 0.35, 0)
+dropdownFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+dropdownFrame.Visible = false
+dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+dropdownFrame.ScrollBarThickness = 4
+dropdownFrame.Parent = frame
+print("Dropdown frame created.")
+
+local selectButton = Instance.new("TextButton")
+selectButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+selectButton.Position = UDim2.new(0.1, 0, 0.75, 0)
+selectButton.Text = "Select Player"
+selectButton.TextColor3 = Color3.new(1, 1, 1)
+selectButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0)
+selectButton.Parent = frame
+print("Select player button created.")
+
+-- Dropdown functionality
+local function toggleDropdown()
+    dropdownFrame.Visible = not dropdownFrame.Visible
+end
+
+local function clearDropdown()
+    for _, child in ipairs(dropdownFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+end
+
+local function updateDropdown()
+    clearDropdown()
+    local playerList = getPlayerList()
+    local yOffset = 0
+    for i, name in ipairs(playerList) do
+        local option = Instance.new("TextButton")
+        option.Size = UDim2.new(1, -4, 0, 20)
+        option.Position = UDim2.new(0, 2, 0, yOffset)
+        option.Text = name
+        option.TextColor3 = Color3.new(1, 1, 1)
+        option.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+        option.Parent = dropdownFrame
+        table.insert(connections, option.MouseButton1Click:Connect(function()
+            dropdownButton.Text = name
+            dropdownFrame.Visible = false
+            print("Selected player from dropdown: " .. name)
+            updateTargetPlayer(name)
+        end))
+        yOffset = yOffset + 22
+    end
+    dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset)
+    print("Dropdown updated with " .. #playerList .. " players.")
+end
+
+-- Initial dropdown population
+updateDropdown()
+
+-- Periodic dropdown refresh (every 30 seconds)
+table.insert(connections, spawn(function()
+    while screen
