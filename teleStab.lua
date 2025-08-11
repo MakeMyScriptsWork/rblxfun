@@ -1,5 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
-print("v1.1 b")
+print("v1.1 c")
 local targetPartialName = "Strangerthink496"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
@@ -134,8 +134,8 @@ local function performAttack()
     local success, err = pcall(function()
         -- First attack sequence
         print("Starting first teleport and attack")
-        forceTeleport(targetRoot)
         equippedTool:Activate()
+        forceTeleport(targetRoot)
         print("First attack activated.")
 
         -- Teleport back
@@ -267,6 +267,7 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     end
 end))
 print("Keybind set for F key.")
+
 
 
 
