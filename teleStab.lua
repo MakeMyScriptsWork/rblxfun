@@ -5,25 +5,26 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Function to get players by partial name with retry
+-- Function to get players by partial name with extended retry
 local function getPlayersByName(name)
     name = name:lower()
     local matches = {}
     local attempts = 0
-    local maxAttempts = 5  -- Retry up to 5 times
+    local maxAttempts = 10  -- Retry for 10 seconds
     while #matches == 0 and attempts < maxAttempts do
+        print("Attempt " .. (attempts + 1) .. " to find player: " .. name)
         for _, player in ipairs(Players:GetPlayers()) do
             local playerName = player.Name:lower()
-            local displayName = player.DisplayName and player.DisplayName:lower() or ""
-            print("Checking player: Name=" .. player.Name .. ", DisplayName=" .. (player.DisplayName or "None"))
+            local displayName = player.DisplayName and player.DisplayName:lower() or "None"
+            print("Player: Name=" .. player.Name .. ", DisplayName=" .. displayName)
             if playerName:find(name, 1, true) or displayName:find(name, 1, true) then
                 table.insert(matches, player)
             end
         end
         if #matches == 0 then
             attempts = attempts + 1
-            print("No matches for '" .. name .. "' on attempt " .. attempts .. ". Waiting...")
-            wait(1)  -- Wait 1s before retrying
+            print("No matches found. Waiting 1 second...")
+            wait(1)
         end
     end
     return matches
@@ -36,7 +37,7 @@ print("Local character loaded: " .. myChar.Name)
 -- Find target players
 local targetPlayers = getPlayersByName(targetPartialName)
 if #targetPlayers == 0 then
-    print("No matching target player found after retries.")
+    print("No matching target player found after " .. maxAttempts .. " attempts.")
     return
 end
 
@@ -212,5 +213,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 print("Keybind set for F key.")
-
-
