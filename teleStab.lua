@@ -1,6 +1,5 @@
 print("Script injected successfully!")  -- Debug to confirm injection
 local version = "v1.1 d"
-local targetPartialName = "Strangerthink496"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -39,20 +38,25 @@ end
 local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 print("Local character loaded: " .. myChar.Name)
 
--- Find target players
-local targetPlayers = getPlayersByName(targetPartialName)
-if #targetPlayers == 0 then
-    print("No matching target player found after " .. maxAttempts .. " attempts.")
-    return
+-- Default target player (set via GUI)
+local targetPlayer = nil
+local targetChar = nil
+local targetRoot = nil
+
+-- Function to update target player
+local function updateTargetPlayer(name)
+    local targetPlayers = getPlayersByName(name)
+    if #targetPlayers == 0 then
+        print("No matching target player found for: " .. name)
+        return false
+    end
+    targetPlayer = targetPlayers[1]
+    print("Target player updated: " .. targetPlayer.Name .. " (DisplayName: " .. (targetPlayer.DisplayName or "None") .. ")")
+    targetChar = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
+    print("Target character loaded: " .. targetChar.Name)
+    targetRoot = getRoot(targetChar)
+    return true
 end
-
--- Take the first matching player
-local targetPlayer = targetPlayers[1]
-print("Target player found: " .. targetPlayer.Name .. " (DisplayName: " .. (targetPlayer.DisplayName or "None") .. ")")
-
--- Wait for target character
-local targetChar = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
-print("Target character loaded: " .. targetChar.Name)
 
 local function getRoot(char)
     local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
@@ -66,10 +70,8 @@ local function getRoot(char)
 end
 
 local myRoot = getRoot(myChar)
-local targetRoot = getRoot(targetChar)
-
-if not myRoot or not targetRoot then
-    print("Root part not found.")
+if not myRoot then
+    print("Local player root part not found.")
     return
 end
 
@@ -81,11 +83,11 @@ if not equippedTool then
 end
 print("Tool found: " .. equippedTool.Name)
 
--- Save original position
-local originalPosition = myRoot.Position
-print("Original position saved: " .. tostring(originalPosition))
+-- Save original position (default return point)
+local returnPosition = myRoot.Position
+print("Default return position saved: " .. tostring(returnPosition))
 
--- Function to calculate behind CFrame, updated each call
+-- Function to calculate behind CFrame
 local function getBehindCFrame(targetRoot)
     local distance = 3  -- Studs behind
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
@@ -117,8 +119,12 @@ local function forceTeleport(targetRoot, duration)
     end
 end
 
--- Attack function, updates target character each time
+-- Attack function
 local function performAttack()
+    if not targetPlayer or not targetChar then
+        print("No target player selected. Enter a name in the text box.")
+        return
+    end
     -- Re-check target character
     targetChar = targetPlayer.Character
     if not targetChar then
@@ -140,8 +146,8 @@ local function performAttack()
 
         -- Teleport back
         print("Teleporting back")
-        local backCFrame = CFrame.new(originalPosition)
-        forceTeleport({Position = originalPosition, CFrame = backCFrame}, 0.3)
+        local backCFrame = CFrame.new(returnPosition)
+        forceTeleport({Position = returnPosition, CFrame = backCFrame}, 0.3)
 
         -- Wait half a second
         wait(0.5)
@@ -155,7 +161,7 @@ local function performAttack()
 
         -- Final back
         print("Final teleport back")
-        forceTeleport({Position = originalPosition, CFrame = backCFrame}, 0.3)
+        forceTeleport({Position = returnPosition, CFrame = backCFrame}, 0.3)
     end)
 
     if not success then
@@ -171,8 +177,8 @@ screenGui.ResetOnSpawn = false
 print("GUI created in " .. screenGui.Parent.Name)
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 100)
-frame.Position = UDim2.new(0.5, -160, 0.5, -50)
+frame.Size = UDim2.new(0, 150, 0, 120)  -- Smaller size
+frame.Position = UDim2.new(0.1, 0, 0.5, -60)  -- Further left
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.BorderSizePixel = 2
 frame.Active = true  -- Enable dragging
@@ -180,9 +186,9 @@ frame.Draggable = true  -- Make GUI movable
 frame.Parent = screenGui
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0.5, 0)
-button.Position = UDim2.new(0.1, 0, 0.1, 0)
-button.Text = "Execute Attack" .. version
+button.Size = UDim2.new(0.8, 0, 0.25, 0)
+button.Position = UDim2.new(0.1, 0, 0.35, 0)
+button.Text = "Execute Attack " .. version
 button.TextColor3 = Color3.new(1, 1, 1)
 button.BackgroundColor3 = Color3.new(0, 0.5, 0)
 button.Parent = frame
@@ -197,51 +203,50 @@ closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
 closeButton.Parent = frame
 print("Close button created.")
 
--- Resize handle
-local resizeButton = Instance.new("TextButton")
-resizeButton.Size = UDim2.new(0, 10, 0, 10)
-resizeButton.Position = UDim2.new(1, -10, 1, -10)
-resizeButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)
-resizeButton.Text = ""
-resizeButton.Parent = frame
-print("Resize handle created.")
+local setReturnButton = Instance.new("TextButton")
+setReturnButton.Size = UDim2.new(0, 20, 0, 20)
+setReturnButton.Position = UDim2.new(1, -50, 0, 5)
+setReturnButton.Text = "R"
+setReturnButton.TextColor3 = Color3.new(1, 1, 1)
+setReturnButton.BackgroundColor3 = Color3.new(0, 0, 1)
+setReturnButton.Parent = frame
+print("Return point button created.")
 
--- Resize functionality
-local dragging = false
-local lastMousePos
-local lastFrameSize
-resizeButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        lastMousePos = input.Position
-        lastFrameSize = frame.Size
-    end
-end)
+local playerTextBox = Instance.new("TextBox")
+playerTextBox.Size = UDim2.new(0.8, 0, 0.2, 0)
+playerTextBox.Position = UDim2.new(0.1, 0, 0.05, 0)
+playerTextBox.Text = "Strangerthink496"  -- Default to your provided name
+playerTextBox.TextColor3 = Color3.new(1, 1, 1)
+playerTextBox.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+playerTextBox.ClearTextOnFocus = true
+playerTextBox.Parent = frame
+print("Player text box created.")
 
-resizeButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
-table.insert(connections, UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - lastMousePos
-        local newSizeX = lastFrameSize.X.Offset + delta.X
-        local newSizeY = lastFrameSize.Y.Offset + delta.Y
-        frame.Size = UDim2.new(0, math.max(100, newSizeX), 0, math.max(50, newSizeY))
-        -- Adjust button sizes to stay proportional
-        button.Size = UDim2.new(0.8, 0, 0.5, 0)
-        button.Position = UDim2.new(0.1, 0, 0.1, 0)
-        closeButton.Position = UDim2.new(1, -25, 0, 5)
-        resizeButton.Position = UDim2.new(1, -10, 1, -10)
-    end
-end))
+local selectButton = Instance.new("TextButton")
+selectButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+selectButton.Position = UDim2.new(0.1, 0, 0.65, 0)
+selectButton.Text = "Select Player"
+selectButton.TextColor3 = Color3.new(1, 1, 1)
+selectButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0)
+selectButton.Parent = frame
+print("Select player button created.")
 
 -- Attack button functionality
 table.insert(connections, button.MouseButton1Click:Connect(function()
     print("Attack button clicked!")
     performAttack()
+end))
+
+-- Select player button functionality
+table.insert(connections, selectButton.MouseButton1Click:Connect(function()
+    print("Select player button clicked! Attempting to set target: " .. playerTextBox.Text)
+    updateTargetPlayer(playerTextBox.Text)
+end))
+
+-- Set return point button functionality
+table.insert(connections, setReturnButton.MouseButton1Click:Connect(function()
+    returnPosition = myRoot.Position
+    print("Return position updated: " .. tostring(returnPosition))
 end))
 
 -- Close button functionality
@@ -252,7 +257,6 @@ table.insert(connections, closeButton.MouseButton1Click:Connect(function()
     end
     connections = {}
     screenGui:Destroy()
-    -- Attempt to stop script execution
     if getfenv().script then
         getfenv().script:Destroy()
     end
@@ -268,8 +272,6 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
 end))
 print("Keybind set for F key.")
 
-
-
-
-
-
+-- Initial target player setup
+print("Attempting initial target setup for: " .. playerTextBox.Text)
+updateTargetPlayer(playerTextBox.Text)
