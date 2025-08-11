@@ -94,3 +94,4 @@ local function updateTargetPlayer(name)
     end
     targetPlayer = targetPlayers[1]
     print("Target player updated: " .. targetPlayer.Name .. " (DisplayName: " .. (targetPlayer.DisplayName or "None
+
