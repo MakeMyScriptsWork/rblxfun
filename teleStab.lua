@@ -1,0 +1,33 @@
+lua
+local targetName = "flawed661"  -- Replace with the actual player namelocal Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local targetPlayer = Players:FindFirstChild(targetName)if not targetPlayer or not targetPlayer.Character or not LocalPlayer.Character then
+    print("Target player or character not found.")
+    return
+endlocal myChar = LocalPlayer.Character
+local targetChar = targetPlayer.Character
+local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")if not myHRP or not targetHRP then
+    print("HumanoidRootPart not found.")
+    return
+end-- Assume the tool is already equipped in the character's hand
+local equippedTool = myChar:FindFirstChildWhichIsA("Tool")
+if not equippedTool then
+    print("No tool equipped.")
+    return
+end-- Save original position
+local originalCFrame = myHRP.CFrame-- Function to teleport behind target
+local function teleportBehind()
+    local behindOffset = targetHRP.CFrame * CFrame.new(0, 0, 3)  -- 3 studs behind, adjust if needed
+    myHRP.CFrame = behindOffset * CFrame.Angles(0, math.pi, 0)  -- Face the target
+end-- First attack sequence
+teleportBehind()
+wait(0.1)  -- Small delay to ensure teleport completes
+equippedTool:Activate()  -- Stab/attack-- Teleport away (back to original)
+myHRP.CFrame = originalCFrame-- Wait half a second
+wait(0.5)-- Second attack sequence
+teleportBehind()
+wait(0.1)
+equippedTool:Activate()  -- Stab again-- Optional: Teleport back again
+myHRP.CFrame = originalCFrame
+
