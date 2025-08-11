@@ -1,4 +1,4 @@
-local targetPartialName = "F0x"  -- Replace with partial or full player name (case-insensitive)
+local targetPartialName = "ejgamer81"  -- Replace with partial or full player name (case-insensitive)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -144,4 +144,5 @@ end)
 if not success then
     print("Error in script execution: " .. err)
 end
+
 
