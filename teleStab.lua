@@ -172,7 +172,7 @@ print("GUI created in " .. screenGui.Parent.Name)
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 200, 0, 100)
-frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.Position = UDim2.new(0.5, -160, 0.5, -50)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.BorderSizePixel = 2
 frame.Active = true  -- Enable dragging
@@ -267,6 +267,7 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     end
 end))
 print("Keybind set for F key.")
+
 
 
 
