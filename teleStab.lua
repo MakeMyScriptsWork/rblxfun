@@ -2,6 +2,8 @@ local targetPartialName = "ejgamer81"  -- Replace with partial or full player na
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Function to get players by partial name (similar to Infinite Yield's getPlayer)
@@ -84,45 +86,68 @@ local function forcePivot(targetCFrame, duration)
     end
 end
 
--- Function to calculate behind CFrame without raycast, using target's Y level
+-- Function to calculate behind CFrame without raycast, using target's Y level with adjustment
 local function getBehindCFrame()
     local distance = 3  -- Studs behind, adjust if needed (try 4 or 5 if too close)
+    local heightOffset = -2  -- Adjust this value down (more negative) if still too high, or up if too low
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
-    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y, behindPosition.Z)
+    local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y + heightOffset, behindPosition.Z)
     local targetPosition = targetRoot.Position
     return CFrame.lookAt(landingPosition, targetPosition)
 end
 
--- Main sequence wrapped in pcall
-local success, err = pcall(function()
-    -- First attack sequence
-    print("Starting first teleport and attack")
-    local behindCFrame = getBehindCFrame()
-    forcePivot(behindCFrame)
-    wait(0.2)
-    equippedTool:Activate()
-    print("First attack activated.")
+-- The attack function
+local function performAttack()
+    local success, err = pcall(function()
+        -- First attack sequence
+        print("Starting first teleport and attack")
+        local behindCFrame = getBehindCFrame()
+        forcePivot(behindCFrame)
+        wait(0.2)
+        equippedTool:Activate()
+        print("First attack activated.")
 
-    -- Teleport back
-    print("Teleporting back")
-    forcePivot(originalPivot)
+        -- Teleport back
+        print("Teleporting back")
+        forcePivot(originalPivot)
 
-    -- Wait half a second
-    wait(0.5)
+        -- Wait half a second
+        wait(0.5)
 
-    -- Second attack sequence
-    print("Starting second teleport and attack")
-    behindCFrame = getBehindCFrame()  -- Recalculate
-    forcePivot(behindCFrame)
-    wait(0.2)
-    equippedTool:Activate()
-    print("Second attack activated.")
+        -- Second attack sequence
+        print("Starting second teleport and attack")
+        behindCFrame = getBehindCFrame()  -- Recalculate
+        forcePivot(behindCFrame)
+        wait(0.2)
+        equippedTool:Activate()
+        print("Second attack activated.")
 
-    -- Final back
-    print("Final teleport back")
-    forcePivot(originalPivot)
-end)
+        -- Final back
+        print("Final teleport back")
+        forcePivot(originalPivot)
+    end)
 
-if not success then
-    print("Error in script execution: " .. err)
+    if not success then
+        print("Error in script execution: " .. err)
+    end
 end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.CoreGui  -- For exploits, use CoreGui to make it visible
+screenGui.Name = "AttackGui"
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.Parent = screenGui
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, 0, 1, 0)
+button.Text = "Execute Attack"
+button.TextColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+button.Parent = frame
+
+button.MouseButton1Click:Connect(performAttack)
