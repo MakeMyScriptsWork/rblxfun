@@ -1,4 +1,5 @@
-local targetName = "flawed661"  -- Replace with the actual player namelocal Players = game:GetService("Players")
+local targetName = "flawed661"  -- Replace with the actual player name
+local Players = game:GetService("Players")
 local TextChatService = game:GetService("TextChatService")
 TextChatService.TextChannels.RBXSystem:DisplaySystemMessage("Test")
 local LocalPlayer = Players.LocalPlayer
@@ -33,6 +34,7 @@ teleportBehind()
 wait(0.1)
 equippedTool:Activate()  -- Stab again-- Optional: Teleport back again
 myHRP.CFrame = originalCFrame
+
 
 
 
