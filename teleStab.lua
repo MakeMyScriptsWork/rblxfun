@@ -63,19 +63,20 @@ if not equippedTool then
 end
 print("Tool found: " .. equippedTool.Name)
 
--- Save original pivot
-local originalPivot = myChar:GetPivot()
-print("Original position saved.")
+-- Save original position
+local originalPosition = myRoot.Position
+print("Original position saved: " .. tostring(originalPosition))
 
--- Function to force pivot
-local function forcePivot(targetCFrame, duration)
-    duration = duration or 0.8  -- Increased to 0.8s to fight reversion
+-- Function to force teleport
+local function forceTeleport(targetCFrame, duration)
+    duration = duration or 0.3  -- Shortened to mimic click teleport
     local startTime = tick()
     local connection
     connection = RunService.RenderStepped:Connect(function()
         pcall(function()
-            myRoot.CFrame = targetCFrame  -- Fallback to direct CFrame
+            myRoot.CFrame = targetCFrame
             myRoot.Velocity = Vector3.new(0, 0, 0)
+            myRoot.RotVelocity = Vector3.new(0, 0, 0)
             myRoot.Anchored = false
         end)
         if tick() - startTime >= duration then
@@ -87,10 +88,10 @@ local function forcePivot(targetCFrame, duration)
     end
 end
 
--- Function to calculate behind CFrame
-local function getBehindCFrame()
+-- Function to calculate behind CFrame, updated on each call
+local function getBehindCFrame(targetRoot)
     local distance = 3  -- Studs behind
-    local heightOffset = 0  -- No height offset, match target's Y exactly
+    local heightOffset = 0.5  -- Slight offset to avoid clipping
     local behindPosition = targetRoot.Position - targetRoot.CFrame.LookVector * distance
     local landingPosition = Vector3.new(behindPosition.X, targetRoot.Position.Y + heightOffset, behindPosition.Z)
     local targetPosition = targetRoot.Position
@@ -98,45 +99,56 @@ local function getBehindCFrame()
     return CFrame.lookAt(landingPosition, targetPosition)
 end
 
--- The attack function
+-- Attack function, checks for target character each time
 local function performAttack()
+    -- Re-check target character in case it respawned
+    targetChar = targetPlayer.Character
+    if not targetChar then
+        print("Target character not found during attack.")
+        return
+    end
+    targetRoot = getRoot(targetChar)
+    if not targetRoot then
+        print("Target root not found during attack.")
+        return
+    end
+
     local success, err = pcall(function()
         -- First attack sequence
         print("Starting first teleport and attack")
-        local behindCFrame = getBehindCFrame()
-        forcePivot(behindCFrame)
-        wait(0.3)  -- Increased sync delay
+        local behindCFrame = getBehindCFrame(targetRoot)
+        forceTeleport(behindCFrame)
+        wait(0.3)
         equippedTool:Activate()
         print("First attack activated.")
 
         -- Teleport back
         print("Teleporting back")
-        forcePivot(originalPivot)
+        forceTeleport(CFrame.new(originalPosition))
 
         -- Wait half a second
         wait(0.5)
 
         -- Second attack sequence
         print("Starting second teleport and attack")
-        behindCFrame = getBehindCFrame()
-        forcePivot(behindCFrame)
+        behindCFrame = getBehindCFrame(targetRoot)  -- Recalculate for new position
+        forceTeleport(behindCFrame)
         wait(0.3)
         equippedTool:Activate()
         print("Second attack activated.")
 
         -- Final back
         print("Final teleport back")
-        forcePivot(originalPivot)
+        forceTeleport(CFrame.new(originalPosition))
     end)
 
     if not success then
-        print("Error in script execution: " .. err)
+        print("Error in attack sequence: " .. err)
     end
 end
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
--- Try PlayerGui first, fallback to CoreGui
 screenGui.Parent = LocalPlayer:FindFirstChild("PlayerGui") or game.CoreGui
 screenGui.Name = "AttackGui"
 screenGui.ResetOnSpawn = false
